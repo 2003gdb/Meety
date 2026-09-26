@@ -48,6 +48,7 @@ iMessage ──► Spectrum (app.messages) ──► Inbox (debounce bursts, 1 t
 | `src/contracts.ts` | **The interfaces other lanes implement** |
 | `src/stubs.ts` | Demo stand-ins for those interfaces |
 | `src/supabase.ts` | Real `UserDirectory`, `ResearchService` and `LumaService` reads: sign-ups and research from `profiles`, events and guest lists from `events` / `attendees` |
+| `src/luma.ts` | Real per-user `LumaService` (with `BROWSERBASE_API_KEY`): Luma login in Browserbase shown at the website's `/connect-luma`, then the user's events and guest lists read from Luma into `events` / `user_events` / `attendees`. Needs `landing-page/supabase/migrations/0002_luma.sql` |
 | `src/jev.ts` | Real `MatchService` (jev-integration's `rankAttendees` / `askAboutPerson`, results saved to `matches`) and `JevBrain` (Jev's `classifyInbound` routes open-ended messages once onboarding is done) |
 
 Onboarding steps: `connect_luma → confirm_identity (→ ask_links) → pick_event → ask_goal → ready`. Once `ready`, the user can ask about anyone ("should I talk to Sherry?"), change their goal, or switch events.

@@ -113,7 +113,7 @@ export class Flow {
 
       case "pick_event": {
         const options = session.eventOptions ?? [];
-        if (session.offeredEvent && said.kind === "yes") return this.selectEvent(session, session.offeredEvent);
+        if (session.offeredEvent && said.kind === "yes") return this.selectEvent(session, user, session.offeredEvent);
         if (session.offeredEvent && said.kind === "no") {
           session.offeredEvent = undefined;
           if (options.length <= 1) return copy.noEvents();
@@ -121,7 +121,7 @@ export class Flow {
         }
         if (said.kind === "choice") {
           const picked = options[said.index];
-          return picked ? this.selectEvent(session, picked) : copy.pickNumber(options.length);
+          return picked ? this.selectEvent(session, user, picked) : copy.pickNumber(options.length);
         }
         if (said.kind === "other" && said.reply) return [said.reply];
         return session.offeredEvent ? copy.offerEvent(session.offeredEvent) : copy.pickNumber(options.length);
@@ -178,11 +178,13 @@ export class Flow {
     return copy.offerEvent(event);
   }
 
-  private selectEvent(session: Session, event: LumaEvent) {
+  private selectEvent(session: Session, user: MeetyUser, event: LumaEvent) {
     session.event = event;
     session.offeredEvent = undefined;
     session.attendees = undefined;
     session.step = "ask_goal";
+    // Start reading the guest list while they type their goal.
+    void this.loadAttendees(session, user).catch((err) => console.error("[flow] guest list failed", err));
     return copy.askGoal(event);
   }
 

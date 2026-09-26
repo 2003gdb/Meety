@@ -2,7 +2,7 @@
 // Sign-ups are `profiles` rows (landing-page), and tavily-research writes each
 // user's research onto the same row right after sign-up. Plain fetch, no SDK.
 
-import { attendeeToPerson, dedupeAttendees, loadAttendees } from "../../jev-integration/src/store.ts";
+import { attendeeToPerson, dedupeAttendees, loadAttendees, type AttendeeRow } from "../../jev-integration/src/store.ts";
 import { confirmUser } from "../../tavily-research/src/research.ts";
 import { saveUserResearch } from "../../tavily-research/src/store.ts";
 import type { Candidate, PersonProfile, ResearchStatus } from "../../tavily-research/src/types.ts";
@@ -32,7 +32,7 @@ export function supabaseConfigured(): boolean {
   return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY);
 }
 
-async function rest(path: string, init: RequestInit = {}): Promise<Response> {
+export async function rest(path: string, init: RequestInit = {}): Promise<Response> {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_KEY;
   if (!url || !key) throw new Error("SUPABASE_URL and SUPABASE_SERVICE_KEY must be set");
@@ -54,7 +54,7 @@ async function rowByPhone(phone: string): Promise<ProfileRow | null> {
   return rows[0] ?? null;
 }
 
-const xUrl = (handle: string | null) => (handle ? `https://x.com/${handle}` : undefined);
+export const xUrl = (handle: string | null) => (handle ? `https://x.com/${handle}` : undefined);
 const xHandle = (url: string) => url.match(/(?:x|twitter)\.com\/([A-Za-z0-9_]+)/i)?.[1];
 
 export class SupabaseUsers implements UserDirectory {
@@ -153,7 +153,7 @@ export class SupabaseResearch implements ResearchService {
   }
 }
 
-interface EventRow {
+export interface EventRow {
   id: string;
   name: string;
   luma_url: string | null;
@@ -161,7 +161,9 @@ interface EventRow {
 }
 
 /** Keep offering an event for a while after it starts, so people can use Meety while they're there. */
-const EVENT_GRACE_MS = 12 * 3_600_000;
+export const EVENT_GRACE_MS = 12 * 3_600_000;
+
+export const toEvent = (e: EventRow): LumaEvent => ({ id: e.id, name: e.name, startsAt: e.starts_at, url: e.luma_url ?? undefined });
 
 /**
  * Events and guest lists from the tables the Luma scraper fills. Logging into Luma
@@ -183,27 +185,28 @@ export class SupabaseLuma implements LumaService {
     const since = new Date(Date.now() - EVENT_GRACE_MS).toISOString();
     const res = await rest(`events?select=id,name,luma_url,starts_at&starts_at=gte.${encodeURIComponent(since)}&order=starts_at`);
     const rows = (await res.json()) as EventRow[];
-    return rows.map((e) => ({ id: e.id, name: e.name, startsAt: e.starts_at, url: e.luma_url ?? undefined }));
+    return rows.map(toEvent);
   }
 
   // No scraped guests reads as a hidden guest list.
   async attendees(_user: MeetyUser, eventId: string): Promise<Attendee[] | null> {
     const rows = dedupeAttendees(await loadAttendees(eventId));
-    if (!rows.length) return null;
-    return rows.map((row) => {
-      // jev-integration's mapping: the bio, plus Tavily research once it's done.
-      const p = attendeeToPerson(row);
-      const headline = p.headline ?? undefined;
-      const profile: Profile = {
-        id: row.id,
-        name: row.name,
-        headline,
-        location: p.location ?? undefined,
-        summary: p.summary ?? "",
-        interests: p.interests ?? undefined,
-        evidence: p.evidence ?? undefined,
-      };
-      return { id: row.id, name: row.name, headline, profileUrl: row.linkedin_url ?? xUrl(row.x_handle), profile };
-    });
+    return rows.length ? rows.map(toAttendee) : null;
   }
+}
+
+/** An `attendees` row as the bot sees it, using jev-integration's mapping: the bio, plus Tavily research once it's done. */
+export function toAttendee(row: AttendeeRow): Attendee {
+  const p = attendeeToPerson(row);
+  const headline = p.headline ?? undefined;
+  const profile: Profile = {
+    id: row.id,
+    name: row.name,
+    headline,
+    location: p.location ?? undefined,
+    summary: p.summary ?? "",
+    interests: p.interests ?? undefined,
+    evidence: p.evidence ?? undefined,
+  };
+  return { id: row.id, name: row.name, headline, profileUrl: row.linkedin_url ?? xUrl(row.x_handle), profile };
 }

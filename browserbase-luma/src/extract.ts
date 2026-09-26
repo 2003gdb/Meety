@@ -65,7 +65,7 @@ export async function readEvents(page: Page): Promise<LumaEvent[]> {
       }
       if (!/^(luma\.com|www\.luma\.com|lu\.ma|www\.lu\.ma)$/.test(url.hostname)) continue;
       const parts = url.pathname.split("/").filter(Boolean);
-      if (parts.length !== 1 || skip.has(parts[0].toLowerCase())) continue;
+      if (parts.length !== 1 || skip.has(parts[0]!.toLowerCase())) continue;
       const clean = `${url.origin}${url.pathname}`;
       if (seen.has(clean)) continue;
       seen.add(clean);
@@ -104,7 +104,7 @@ export async function readNextEvent(page: Page, event: LumaEvent): Promise<NextE
     const seen = new Set<string>();
     const people: { name: string; profileUrl: string }[] = [];
     for (const anchor of document.querySelectorAll('a[href*="/user/"]')) {
-      const profileUrl = (anchor as HTMLAnchorElement).href.split("?")[0];
+      const profileUrl = (anchor as HTMLAnchorElement).href.split("?")[0]!;
       if (seen.has(profileUrl)) continue;
       seen.add(profileUrl);
       const name = (anchor.textContent || anchor.getAttribute("aria-label") || "")

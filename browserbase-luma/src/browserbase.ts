@@ -1,6 +1,6 @@
 import Browserbase from "@browserbasehq/sdk";
 import { chromium, type Browser, type Page } from "playwright-core";
-import { projectId, requireApiKey } from "./env";
+import { projectId, requireApiKey } from "./env.ts";
 
 const LOGIN_URL = "https://luma.com/signin";
 const HOME_URL = "https://luma.com/home";
@@ -65,7 +65,7 @@ export async function releaseSession(bb: Browserbase, sessionId: string): Promis
 
 export async function connect(sessionConnectUrl: string): Promise<{ browser: Browser; page: Page }> {
   const browser = await chromium.connectOverCDP(sessionConnectUrl);
-  const context = browser.contexts()[0];
+  const context = browser.contexts()[0]!;
   const page = context.pages()[0] ?? (await context.newPage());
   return { browser, page };
 }

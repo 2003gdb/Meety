@@ -7,6 +7,7 @@ import { startHttp } from "./http.js";
 import { Inbox } from "./inbox.js";
 import { jevConfigured } from "../../jev-integration/src/jev.ts";
 import { JevBrain, JevMatch } from "./jev.js";
+import { LumaAccounts, browserbaseConfigured } from "./luma.js";
 import { stubServices } from "./stubs.js";
 import { SupabaseLuma, SupabaseResearch, SupabaseUsers, supabaseConfigured } from "./supabase.js";
 import { connectIMessage, connectTerminal, normalizeHandle, type Transport } from "./transport.js";
@@ -57,7 +58,12 @@ function makeServices(): Services {
   const supabase = supabaseConfigured();
   return {
     ...stubs,
-    ...(supabase && { users: new SupabaseUsers(), research: new SupabaseResearch(), luma: new SupabaseLuma(stubs.luma) }),
+    ...(supabase && {
+      users: new SupabaseUsers(),
+      research: new SupabaseResearch(),
+      // Real Luma login with Browserbase keys; otherwise events and guests already in Supabase.
+      luma: browserbaseConfigured() ? new LumaAccounts(config.signupUrl) : new SupabaseLuma(stubs.luma),
+    }),
     ...(jevConfigured() && { match: new JevMatch({ save: supabase }) }),
   };
 }
@@ -65,7 +71,9 @@ function makeServices(): Services {
 async function main() {
   const services = makeServices();
   const brain = jevConfigured() ? new JevBrain(makeBrain()) : makeBrain();
-  console.log(`[meety] data: ${supabaseConfigured() ? "supabase" : "stubs"}, matching: ${jevConfigured() ? "jev" : "stub"}`);
+  console.log(
+    `[meety] data: ${supabaseConfigured() ? "supabase" : "stubs"}, luma: ${browserbaseConfigured() ? "browserbase" : "stub"}, matching: ${jevConfigured() ? "jev" : "stub"}`,
+  );
   const flow = new Flow(services, brain, { signupUrl: config.signupUrl });
   const transport: Transport =
     config.transport === "terminal" ? await connectTerminal(config.demoPhone) : await connectIMessage();
