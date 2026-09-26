@@ -46,7 +46,7 @@ export function startHttp(port: number, secret: string | undefined, handlers: Ht
       return send(res, 404, { error: "not found" });
     } catch (err) {
       console.error("[http]", err);
-      return send(res, 500, { error: "internal error" });
+      return send(res, 502, { error: err instanceof Error ? err.message : "internal error" });
     }
   });
   server.listen(port, () => console.log(`[http] listening on :${port}`));

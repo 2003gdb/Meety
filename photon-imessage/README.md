@@ -9,6 +9,8 @@ The iMessage conversation with the user, built on Photon's [Spectrum SDK](https:
 - If someone texts before signing up, send them the landing page link and stop there
 - A cheap LLM runs the conversation; Jev only makes the yes/no calls
 
+**Status:** v1 works on real iMessage (tested on an iPhone). The other lanes are still stubbed with demo data. Photon's Pro plan adds limits that change how onboarding starts; see [PHOTON_SETUP.md](PHOTON_SETUP.md) before building the landing page handoff.
+
 ## Run it
 
 ```bash
@@ -17,6 +19,8 @@ npm test               # flow + debounce tests, no network
 npm run chat           # local chat in the terminal via Spectrum's terminal provider, no Photon account needed
 npm start              # real iMessage; needs SPECTRUM_PROJECT_ID / SPECTRUM_PROJECT_SECRET
 ```
+
+First time on real iMessage? Follow [PHOTON_SETUP.md](PHOTON_SETUP.md): the right credentials, allowlisting phones, and why each phone has to text Meety first.
 
 Copy `.env.example` to `.env` and fill it in; the npm scripts load it automatically. With `ANTHROPIC_API_KEY` set, the conversation brain is `claude-haiku-4-5` (override with `MEETY_BRAIN_MODEL`); without it, a rule-based interpreter runs instead. The terminal provider downloads Photon's `tuichat` binary from GitHub on first run.
 
@@ -54,7 +58,7 @@ If `MEETY_INTERNAL_SECRET` is set, send it as the `x-meety-secret` header.
 
 | Endpoint | Caller | Body | Effect |
 |---|---|---|---|
-| `POST /handoff` | landing-page, right after sign-up | `{ phone, name?, email?, linkedinUrl?, xUrl? }` | Registers the user and texts them first |
+| `POST /handoff` | landing-page, right after sign-up | `{ phone, name?, email?, linkedinUrl?, xUrl? }` | Registers the user and texts them first. On the Pro plan this only works after the user has texted Meety once ([why](PHOTON_SETUP.md#pro-plan-rules)) |
 | `POST /notify` | whoever schedules the ~24h pre-event trigger | `{ phone, eventId? }` | Texts "you're down for X tomorrow, want me to prep you?" |
 | `GET /health` | anyone | | `{ ok: true }` |
 
@@ -74,9 +78,12 @@ Swap the stub in `stubServices()` for the real implementation when each lane is 
 | `MatchService` | jev-integration | `rank` (pre-event pass), `assess` (live yes/no + probability) |
 | `Transcriber` | unassigned | `transcribe(audio, mimeType)`; the current stub returns `null`, so Meety asks the user to type instead |
 
+On failure, `/handoff` and `/notify` return Photon's reason in the JSON `error` field.
+
 ## Known gaps in v1
 
-- Sessions and users are in memory, so a restart forgets everyone. Move them to Supabase alongside the landing page.
-- The shared-pool Photon plan may send from different numbers per user. A dedicated line (Business plan) keeps one number.
-- Photon allows 50 new outbound conversations per line per day, which matters for `/handoff` at scale.
-- No voice transcription provider has been picked yet.
+- **Meety can't text a new sign-up first on the Pro plan.** Next change: a "Text Meety" button on the landing page, and onboarding that starts when a registered user texts in. See [PHOTON_SETUP.md](PHOTON_SETUP.md#what-this-changes-in-onboarding).
+- **Every phone must be allowlisted** under Users in the Photon dashboard (Pro plan).
+- **State is in memory.** Sessions and users are lost on restart; move them to Supabase alongside the landing page.
+- **No voice transcription provider** has been picked yet.
+- **No LLM without a key.** Without `ANTHROPIC_API_KEY`, replies are read by fixed rules, and unexpected wording gets "not sure I follow".

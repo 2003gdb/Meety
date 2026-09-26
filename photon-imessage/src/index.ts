@@ -96,6 +96,7 @@ async function main() {
     if (message.direction === "outbound") continue;
     const phone = transport.phoneOf(message);
     if (!phone) continue;
+    console.log(`[meety] ${message.content.type} from ${message.sender?.id} in ${space.id}`);
 
     if (message.content.type === "text" && message.content.text.trim() === "/reset") {
       const user = await services.users.findByPhone(phone);

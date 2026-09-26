@@ -29,6 +29,9 @@ export async function connectIMessage(): Promise<Transport> {
   if (!process.env.SPECTRUM_PROJECT_ID || !process.env.SPECTRUM_PROJECT_SECRET) {
     throw new Error("Set SPECTRUM_PROJECT_ID and SPECTRUM_PROJECT_SECRET, or run with MEETY_TRANSPORT=terminal");
   }
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(process.env.SPECTRUM_PROJECT_ID)) {
+    throw new Error("SPECTRUM_PROJECT_ID should be the project's UUID (xxxxxxxx-xxxx-...) from app.photon.codes project Settings");
+  }
   const app = await Spectrum({
     projectId: process.env.SPECTRUM_PROJECT_ID,
     projectSecret: process.env.SPECTRUM_PROJECT_SECRET,
@@ -53,6 +56,9 @@ export async function connectIMessage(): Promise<Transport> {
  * opens a chat named after the phone number.
  */
 export async function connectTerminal(demoPhone: string): Promise<Transport> {
+  // Spectrum falls back to these env vars; keep terminal mode fully offline.
+  delete process.env.SPECTRUM_PROJECT_ID;
+  delete process.env.SPECTRUM_PROJECT_SECRET;
   const app = await Spectrum({
     providers: [terminal.config({ commands: [{ name: "/reset", description: "Start onboarding over" }] })],
   });
