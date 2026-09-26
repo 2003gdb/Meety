@@ -95,7 +95,10 @@ export class Flow {
 
       case "confirm_identity": {
         if (said.kind === "links") return this.useLinks(session, user, said);
-        if (said.kind === "yes") return this.chooseEvent(session, user);
+        if (said.kind === "yes") {
+          await this.services.research.confirm(user);
+          return this.chooseEvent(session, user);
+        }
         if (said.kind === "no") {
           session.step = "ask_links";
           return copy.askLinks();
@@ -137,6 +140,7 @@ export class Flow {
           return [...copy.goalUpdated(said.goal), ...(await this.matchSummary(session, user))];
         }
         if (said.kind === "ask_person") return this.askAbout(session, user, said.name, said.question);
+        if (said.kind === "matches") return this.matchSummary(session, user);
         if (said.kind === "other" && said.reply) return [said.reply];
         return copy.fallback();
       }

@@ -1,6 +1,6 @@
 // The three Jev decisions Meety makes: rank attendees before an event, answer
 // "should I talk to X?" live, and classify inbound iMessages.
-import { noul, systemOne, type Ask } from './jev.ts'
+import { noul, systemOne, type Ask, type Question } from './jev.ts'
 import {
   goodForTopic, inboundIntent, inboundState, INTENTS, userState, worthMeeting,
   type Intent, type Person,
@@ -49,7 +49,7 @@ export async function rankAttendees(
   const failed: string[] = []
   settled.forEach((s, b) => {
     if (s.status === 'rejected') console.error(`batch ${b} failed: ${String(s.reason?.message ?? s.reason).slice(0, 200)}`)
-    batches[b].forEach((a, i) => {
+    batches[b]!.forEach((a, i) => {
       const p = s.status === 'fulfilled' ? noul(s.value, `a${i}`) : null
       if (p === null) failed.push(a.id)
       else matches.push({ id: a.id, name: a.name, probability: p, match: p >= threshold })
@@ -75,7 +75,7 @@ export async function askAboutPerson(
   topic: string | null = null,
   { ask = systemOne }: { ask?: Ask } = {},
 ): Promise<Verdict> {
-  const questions = topic
+  const questions: Record<string, Question> = topic
     ? { worth: worthMeeting(person), topic: goodForTopic(person, topic) }
     : { worth: worthMeeting(person) }
   const res = await ask(userState(user, goal), questions)

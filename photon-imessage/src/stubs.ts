@@ -78,6 +78,7 @@ export class StubResearch implements ResearchService {
       ...links,
     };
   }
+  async confirm() {}
 }
 
 const STOPWORDS = new Set("a an and the to of in on for at with who is are i me my want wants meet people talk get from this that it be".split(" "));

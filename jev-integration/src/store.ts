@@ -44,9 +44,11 @@ export interface ProfileRow {
   summary: string | null
   interests: string[] | null
   evidence: string[] | null
+  /** tavily-research Pass 1; 'ambiguous' is a best guess the user hasn't confirmed. */
+  research_status?: string | null
 }
 
-const PROFILE_COLUMNS = 'id,full_name,email,phone,linkedin_url,x_handle,headline,location,summary,interests,evidence'
+const PROFILE_COLUMNS = 'id,full_name,email,phone,linkedin_url,x_handle,headline,location,summary,interests,evidence,research_status'
 
 export interface AttendeeRow {
   id: string
@@ -102,16 +104,20 @@ export function attendeeToPerson(row: AttendeeRow): Person {
   }
 }
 
-/** The user's own research (tavily-research Pass 1) is trusted, unlike attendee text. */
+/**
+ * The user's own research (tavily-research Pass 1) is trusted, unlike attendee text,
+ * but only once they confirmed it: an unconfirmed guess may be someone with the same name.
+ */
 export function profileToPerson(row: ProfileRow): Person {
+  const done = row.research_status === 'done'
   return {
     id: row.id,
     name: row.full_name?.trim() || 'the user',
-    headline: row.headline?.trim() || undefined,
-    location: row.location?.trim() || undefined,
-    summary: row.summary?.trim() || undefined,
-    interests: row.interests?.length ? row.interests : undefined,
-    evidence: row.evidence?.length ? row.evidence : undefined,
+    headline: done ? row.headline?.trim() || undefined : undefined,
+    location: done ? row.location?.trim() || undefined : undefined,
+    summary: done ? row.summary?.trim() || undefined : undefined,
+    interests: done && row.interests?.length ? row.interests : undefined,
+    evidence: done && row.evidence?.length ? row.evidence : undefined,
   }
 }
 

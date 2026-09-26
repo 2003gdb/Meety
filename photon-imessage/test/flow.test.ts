@@ -59,6 +59,18 @@ test("'that's not me' asks for links and re-checks identity", async () => {
   assert.match(joined(out), /linkedin\.com\/in\/samtaylor/);
 });
 
+test("'yes, that's me' confirms the research", async () => {
+  const services = stubServices();
+  const confirmed: string[] = [];
+  services.research.confirm = async (user) => void confirmed.push(user.phone);
+  const flow = new Flow(services, new RuleBrain(), { signupUrl: "https://meety.test" });
+  await flow.start({ phone: PHONE, name: "Sam Taylor" });
+  await flow.handle(PHONE, "done");
+  assert.deepEqual(confirmed, []);
+  await flow.handle(PHONE, "yep");
+  assert.deepEqual(confirmed, [PHONE]);
+});
+
 test("declining the first event lists the others and accepts a number", async () => {
   const flow = newFlow();
   await flow.start({ phone: PHONE, name: "Sam Taylor" });

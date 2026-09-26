@@ -16,6 +16,7 @@ export type Interpretation =
   | { kind: "ask_person"; name: string; question?: string }
   | { kind: "new_goal"; goal: string }
   | { kind: "switch_event" }
+  | { kind: "matches" }
   | { kind: "help" }
   | { kind: "other"; reply?: string };
 

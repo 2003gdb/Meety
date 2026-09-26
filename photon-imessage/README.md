@@ -9,7 +9,7 @@ The iMessage conversation with the user, built on Photon's [Spectrum SDK](https:
 - If someone texts before signing up, send them the landing page link and stop there
 - A cheap LLM runs the conversation; Jev only makes the yes/no calls
 
-**Status:** v1 works on real iMessage (tested on an iPhone). The other lanes are still stubbed with demo data. Photon's Pro plan adds limits that change how onboarding starts; see [PHOTON_SETUP.md](PHOTON_SETUP.md) before building the landing page handoff.
+**Status:** v1 works on real iMessage (tested on an iPhone). Sign-ups, research, events and guest lists come from Supabase and matching from Jev when configured; the Luma login is still stubbed. Photon's Pro plan adds limits that change how onboarding starts; see [PHOTON_SETUP.md](PHOTON_SETUP.md) before building the landing page handoff.
 
 ## Run it
 
@@ -47,6 +47,8 @@ iMessage ──► Spectrum (app.messages) ──► Inbox (debounce bursts, 1 t
 | `src/copy.ts` | Every line Meety sends, in one place |
 | `src/contracts.ts` | **The interfaces other lanes implement** |
 | `src/stubs.ts` | Demo stand-ins for those interfaces |
+| `src/supabase.ts` | Real `UserDirectory`, `ResearchService` and `LumaService` reads: sign-ups and research from `profiles`, events and guest lists from `events` / `attendees` |
+| `src/jev.ts` | Real `MatchService` (jev-integration's `rankAttendees` / `askAboutPerson`, results saved to `matches`) and `JevBrain` (Jev's `classifyInbound` routes open-ended messages once onboarding is done) |
 
 Onboarding steps: `connect_luma → confirm_identity (→ ask_links) → pick_event → ask_goal → ready`. Once `ready`, the user can ask about anyone ("should I talk to Sherry?"), change their goal, or switch events.
 
@@ -68,13 +70,13 @@ curl -X POST localhost:8787/handoff -H 'content-type: application/json' -d '{"ph
 
 ### Calls out of this module (`src/contracts.ts`)
 
-Swap the stub in `stubServices()` for the real implementation when each lane is ready.
+Swap the stub in `stubServices()` for the real implementation when each lane is ready. With `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` set, `index.ts` already uses `src/supabase.ts` for users and research (links the user texts in are researched with `TAVILY_API_KEY`). It also reads events and guest lists from Supabase; the Luma login itself is still a stub. With `TYPESAFE_API_KEY` set, Jev does the matching and message routing (`src/jev.ts`). For the terminal demo, set `MEETY_DEMO_PHONE` to a signed-up number.
 
 | Interface | Lane | Methods |
 |---|---|---|
 | `UserDirectory` | landing-page (Supabase) | `findByPhone`, `upsert` |
 | `LumaService` | browserbase-luma | `connectUrl`, `isConnected`, `upcomingEvents`, `attendees` (return `null` for a hidden guest list) |
-| `ResearchService` | tavily-research | `profileFor`, `profileFromLinks` |
+| `ResearchService` | tavily-research | `profileFor`, `profileFromLinks`, `confirm` (user said "yes, that's me") |
 | `MatchService` | jev-integration | `rank` (pre-event pass), `assess` (live yes/no + probability) |
 | `Transcriber` | unassigned | `transcribe(audio, mimeType)`; the current stub returns `null`, so Meety asks the user to type instead |
 
@@ -84,6 +86,6 @@ On failure, `/handoff` and `/notify` return Photon's reason in the JSON `error` 
 
 - **The landing page needs a "Text Meety" button.** On the Pro plan Meety can't text a new sign-up first, so the user has to message first; Meety then replies with the welcome. See [PHOTON_SETUP.md](PHOTON_SETUP.md#what-this-changes-in-onboarding).
 - **Every phone must be allowlisted** under Users in the Photon dashboard (Pro plan).
-- **State is in memory.** Sessions and users are lost on restart; move them to Supabase alongside the landing page.
+- **Sessions are in memory.** Onboarding progress is lost on restart (users and research come from Supabase when configured).
 - **No voice transcription provider** has been picked yet.
 - **No LLM without a key.** Without `ANTHROPIC_API_KEY`, replies are read by fixed rules, and unexpected wording gets "not sure I follow".

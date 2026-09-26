@@ -13,10 +13,16 @@ export interface MeetyUser {
 
 /** tavily-research output: who the user (or an attendee) is. */
 export interface Profile {
+  /** profiles.id or attendees.id when it came from Supabase. */
+  id?: string;
   name?: string;
   headline?: string;
+  location?: string;
   /** One or two sentences, used for "Is this you?" and inside Jev prompts. */
   summary: string;
+  /** Topic tags Jev reads, and checkable facts the "why" line may cite. */
+  interests?: string[];
+  evidence?: string[];
   linkedinUrl?: string;
   xUrl?: string;
 }
@@ -77,6 +83,8 @@ export interface ResearchService {
   profileFor(user: MeetyUser): Promise<Profile | null>;
   /** Re-run research from links the user gave us after "that's not me". */
   profileFromLinks(user: MeetyUser, links: { linkedinUrl?: string; xUrl?: string }): Promise<Profile | null>;
+  /** The user said "yes, that's me" to the profile we showed. */
+  confirm(user: MeetyUser): Promise<void>;
 }
 
 /** jev-integration lane. */

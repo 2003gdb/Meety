@@ -5,7 +5,10 @@ import { copy } from "./copy.js";
 import { Flow } from "./flow.js";
 import { startHttp } from "./http.js";
 import { Inbox } from "./inbox.js";
+import { jevConfigured } from "../../jev-integration/src/jev.ts";
+import { JevBrain, JevMatch } from "./jev.js";
 import { stubServices } from "./stubs.js";
+import { SupabaseLuma, SupabaseResearch, SupabaseUsers, supabaseConfigured } from "./supabase.js";
 import { connectIMessage, connectTerminal, normalizeHandle, type Transport } from "./transport.js";
 
 const env = process.env;
@@ -15,7 +18,8 @@ const config = {
   port: Number(env.MEETY_HTTP_PORT || 8787),
   secret: env.MEETY_INTERNAL_SECRET || undefined,
   debounceMs: Number(env.MEETY_DEBOUNCE_MS || 2500),
-  demoPhone: "+15550000000",
+  // Set to a signed-up number to run the terminal demo against real Supabase data.
+  demoPhone: env.MEETY_DEMO_PHONE || "+15550000000",
   demoName: env.MEETY_DEMO_NAME || "Sam Taylor",
 } as const;
 
@@ -43,9 +47,26 @@ async function toText(message: Message, services: Services): Promise<string | nu
   return null;
 }
 
+/**
+ * Real lanes wherever they're configured, demo stubs elsewhere. With Supabase: sign-ups,
+ * research, events and guest lists (the Luma login is still a stub). With a TypeSafe key:
+ * Jev ranks, answers "should I talk to X?", and routes open-ended messages.
+ */
+function makeServices(): Services {
+  const stubs = stubServices();
+  const supabase = supabaseConfigured();
+  return {
+    ...stubs,
+    ...(supabase && { users: new SupabaseUsers(), research: new SupabaseResearch(), luma: new SupabaseLuma(stubs.luma) }),
+    ...(jevConfigured() && { match: new JevMatch({ save: supabase }) }),
+  };
+}
+
 async function main() {
-  const services = stubServices();
-  const flow = new Flow(services, makeBrain(), { signupUrl: config.signupUrl });
+  const services = makeServices();
+  const brain = jevConfigured() ? new JevBrain(makeBrain()) : makeBrain();
+  console.log(`[meety] data: ${supabaseConfigured() ? "supabase" : "stubs"}, matching: ${jevConfigured() ? "jev" : "stub"}`);
+  const flow = new Flow(services, brain, { signupUrl: config.signupUrl });
   const transport: Transport =
     config.transport === "terminal" ? await connectTerminal(config.demoPhone) : await connectIMessage();
   console.log(`[meety] connected via ${transport.kind}`);

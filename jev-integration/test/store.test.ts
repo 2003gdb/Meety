@@ -32,13 +32,23 @@ test('profileToPerson maps the user\'s research columns', () => {
   const p = profileToPerson({
     id: 'u1', full_name: 'Alex Rivera', email: null, phone: null, linkedin_url: null, x_handle: null,
     headline: 'Founder, Meety', location: 'San Francisco', summary: 'Builds an iMessage assistant.',
-    interests: ['iMessage'], evidence: [],
+    interests: ['iMessage'], evidence: [], research_status: 'done',
   })
   assert.equal(p.headline, 'Founder, Meety')
   assert.equal(p.location, 'San Francisco')
   assert.equal(p.summary, 'Builds an iMessage assistant.')
   assert.deepEqual(p.interests, ['iMessage'])
   assert.equal(p.evidence, undefined)
+})
+
+test('profileToPerson ignores research the user has not confirmed', () => {
+  // An "is this you?" guess may be a different person with the same name.
+  const p = profileToPerson({
+    id: 'u1', full_name: 'Martin Galaz', email: null, phone: null, linkedin_url: null, x_handle: null,
+    headline: 'Singer', location: 'Mexico', summary: 'Releases pop albums.',
+    interests: ['music'], evidence: ['Millions of Spotify streams.'], research_status: 'ambiguous',
+  })
+  assert.deepEqual(p, { id: 'u1', name: 'Martin Galaz', headline: undefined, location: undefined, summary: undefined, interests: undefined, evidence: undefined })
 })
 
 test('attendeeToPerson adds research only once it is done', () => {
