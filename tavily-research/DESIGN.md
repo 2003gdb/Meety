@@ -139,7 +139,7 @@ What changed: one GMI call per person instead of 4 chained Claude calls, extract
 
 - **Gab:** which language and runtime does the bot use? This lane follows it (option 2C). Until Gab answers, the module assumes TypeScript on Node, with plain `fetch` and no SDKs.
 - **Jozi:** answered. The scraper writes `attendees` rows directly; research keys on `attendees.id`, so no Luma user ID is needed.
-- **Carlos:** how is this lane told about a new sign-up (a database trigger, a webhook, or the bot polling `profiles` for `research_status = 'pending'`)?
+- **Carlos:** answered. The landing page runs Pass 1 in `after()` when onboarding saves the profile (`landing-page/src/lib/research.ts`). With no links it summarizes the top candidate and leaves it `ambiguous`; the bot's "yes" marks it `done` (`photon-imessage/src/supabase.ts`).
 - **Privacy, for the pitch:** Pass 2 profiles attendees who never signed up. It uses only public pages, and the user only ever sees the one-line reason to talk to someone, never a full profile. Say this in the demo before a judge asks.
 
 ## Risks

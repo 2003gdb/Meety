@@ -1,5 +1,6 @@
 // Thin wrapper over Tavily's REST API. No SDK: two endpoints, plain fetch.
 import { existsSync, readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const API = 'https://api.tavily.com'
@@ -7,7 +8,8 @@ const API = 'https://api.tavily.com'
 // TAVILY_API_KEY wins; otherwise read the gitignored tavily.key next to this lane.
 function apiKey(): string {
   if (process.env.TAVILY_API_KEY) return process.env.TAVILY_API_KEY
-  const keyFile = fileURLToPath(new URL('../tavily.key', import.meta.url))
+  // A path, not new URL(..., import.meta.url): bundlers (Next.js) would ship the key as an asset.
+  const keyFile = join(dirname(fileURLToPath(import.meta.url)), '..', 'tavily.key')
   if (existsSync(keyFile)) {
     const match = readFileSync(keyFile, 'utf8').match(/tvly-[A-Za-z0-9_-]+/)
     if (match) return match[0]
@@ -74,7 +76,7 @@ export async function extract(
   const failed: string[] = []
   settled.forEach((s, i) => {
     if (s.status === 'rejected') {
-      failed.push(...batches[i])
+      failed.push(...batches[i]!)
       return
     }
     results.push(...(s.value.results ?? []))

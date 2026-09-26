@@ -8,7 +8,7 @@ A minimal sign-up page, and the only way into the product.
 
 1. `/` → `/signup`: email magic link through Supabase Auth.
 2. `/auth/callback` exchanges the link's code for a session. The link must be opened in the same browser that requested it.
-3. `/onboarding`: name and phone number (required, phone stored as E.164), optional LinkedIn URL and X handle.
+3. `/onboarding`: name and phone number (required, phone stored as E.164), optional LinkedIn URL and X handle. Saving starts [tavily-research](../tavily-research) Pass 1 in the background (`src/lib/research.ts`, via `after()`), so the user never waits on it.
 4. `/welcome`: **Text Meety** opens Messages with "Hey Meety" prefilled to the Photon line. The user sends the first text.
 
 `/welcome` sends logged-out users to `/signup` and users without a phone to `/onboarding`.
@@ -30,7 +30,14 @@ npm run dev   # http://localhost:3000
 | `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` locally, the deployed URL in production |
 | `NEXT_PUBLIC_PHOTON_NUMBER` | Meety's iMessage line in E.164, e.g. `+14155550123` (`photon spectrum lines ls`) |
 
+| `SUPABASE_URL` | Same as `NEXT_PUBLIC_SUPABASE_URL`; read by tavily-research |
+| `SUPABASE_SERVICE_KEY` | Supabase → Project Settings → API → secret key. Server-only, never `NEXT_PUBLIC_` |
+| `TAVILY_API_KEY` | Tavily dashboard |
+| `GMI_API_KEY` | Optional. Better summaries; without it a heuristic fallback is used |
+
 `NEXT_PUBLIC_*` values are inlined at build time, so redeploy after changing them.
+
+The app imports `../tavily-research` directly (`next.config.ts` sets the Turbopack root to the repo root). On Vercel, keep "Include files outside the root directory" enabled.
 
 ## Supabase setup
 
@@ -52,7 +59,7 @@ Signups land in `public.profiles` (one row per `auth.users` row, created by a tr
 | `x_handle` | Optional, without the `@` |
 | `onboarded_at` | Set when onboarding saves the phone. Null means the user hasn't finished. |
 
-To react to new signups (research, first message), add a Supabase Database Webhook on `profiles` UPDATE and act on rows where `onboarded_at` is set.
+Research lands on the same row a few seconds to ~1 minute after onboarding: `summary`, `headline`, `candidates` and `research_status` (`ambiguous` = a best guess to confirm with "is this you?", `done` = confirmed or from the user's own links, `no_match`). Columns: [tavily-research/schema.sql](../tavily-research/schema.sql).
 
 On each inbound iMessage:
 

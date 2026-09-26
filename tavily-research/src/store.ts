@@ -1,6 +1,7 @@
 // Reads and writes the shared Meety tables through PostgREST: the user's research
 // goes onto `profiles`, guests' onto `attendees` (columns in schema.sql). Plain fetch.
 import { existsSync, readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { fromAttendeeRow, researchAttendees } from './research.ts'
 import type { AttendeeRow, Candidate, PersonProfile } from './types.ts'
@@ -12,7 +13,8 @@ const FRESH_DAYS = 7
 function config(): { url: string; key: string } {
   let url = process.env.SUPABASE_URL
   let key = process.env.SUPABASE_SERVICE_KEY
-  const keyFile = fileURLToPath(new URL('../supabase.key', import.meta.url))
+  // A path, not new URL(..., import.meta.url): bundlers (Next.js) would ship the key as an asset.
+  const keyFile = join(dirname(fileURLToPath(import.meta.url)), '..', 'supabase.key')
   if ((!url || !key) && existsSync(keyFile)) {
     const text = readFileSync(keyFile, 'utf8')
     url ??= text.match(/https:\/\/[a-z0-9]+\.supabase\.co/)?.[0]

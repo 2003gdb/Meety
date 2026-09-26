@@ -1,6 +1,7 @@
 // GMI Cloud chat completions (OpenAI-compatible). Returns null when no key is
 // configured so callers can fall back to a heuristic profile.
 import { existsSync, readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const BASE_URL = process.env.GMI_BASE_URL ?? 'https://api.gmi-serving.com/v1'
@@ -9,7 +10,8 @@ const MODEL = process.env.GMI_MODEL ?? 'deepseek-ai/DeepSeek-V4-Pro'
 // GMI_API_KEY wins; otherwise read the gitignored gmi.key ("Gmi:<token>").
 function apiKey(): string | null {
   if (process.env.GMI_API_KEY) return process.env.GMI_API_KEY
-  const keyFile = fileURLToPath(new URL('../gmi.key', import.meta.url))
+  // A path, not new URL(..., import.meta.url): bundlers (Next.js) would ship the key as an asset.
+  const keyFile = join(dirname(fileURLToPath(import.meta.url)), '..', 'gmi.key')
   if (!existsSync(keyFile)) return null
   return readFileSync(keyFile, 'utf8').match(/[A-Za-z0-9._-]{20,}/)?.[0] ?? null
 }

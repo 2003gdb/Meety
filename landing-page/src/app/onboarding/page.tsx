@@ -6,6 +6,9 @@ import OnboardingForm from "./OnboardingForm";
 
 export const metadata: Metadata = { title: "Your details · Meety" };
 
+// saveProfile's background Tavily research can take ~90s when the LLM is slow.
+export const maxDuration = 120;
+
 export default async function OnboardingPage() {
   const supabase = await createClient();
   const {

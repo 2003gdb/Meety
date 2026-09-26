@@ -1,7 +1,9 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { toE164, toLinkedInUrl, toXHandle } from "@/lib/profile-fields";
+import { researchNewProfile } from "@/lib/research";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/types";
 
@@ -49,6 +51,12 @@ export async function saveProfile(
       }
       return { error: "We couldn't save your details. Try again." };
     }
+
+    // Look them up with Tavily in the background; the bot uses it later.
+    const { id, email } = user;
+    after(() =>
+      researchNewProfile({ id, name: fullName, email: email ?? "", linkedinUrl: linkedInUrl, xHandle }),
+    );
   } catch (err) {
     console.error("saveProfile crashed:", err);
     return { error: "Something went wrong on our side. Try again." };

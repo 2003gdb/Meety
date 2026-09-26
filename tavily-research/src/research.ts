@@ -32,7 +32,7 @@ export function companyFromEmail(email: string): string | null {
   if (!domain || FREE_EMAIL_DOMAINS.has(domain)) return null
   const parts = domain.split('.')
   if (parts.length < 2) return null
-  const label = parts[parts.length - 2]
+  const label = parts[parts.length - 2]!
   return label.charAt(0).toUpperCase() + label.slice(1)
 }
 
@@ -56,7 +56,7 @@ export function profileKey(url: string): { source: 'linkedin' | 'x'; handle: str
     }
     // Post URLs look like /posts/<handle>_<slug>-activity-<id>
     if (segments[0] === 'posts' && segments[1]) {
-      const handle = segments[1].split('_')[0].toLowerCase()
+      const handle = segments[1].split('_')[0]!.toLowerCase()
       return { source: 'linkedin', handle, url: `https://www.linkedin.com/in/${handle}` }
     }
     return null
@@ -162,7 +162,7 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T, index: nu
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
     while (next < items.length) {
       const i = next++
-      out[i] = await fn(items[i], i)
+      out[i] = await fn(items[i]!, i)
     }
   })
   await Promise.all(workers)
@@ -350,7 +350,7 @@ export async function researchAttendees(attendees: Attendee[]): Promise<PersonPr
   }
 
   return mapLimit(attendees, LLM_CONCURRENCY, async (a, i) => {
-    const sources = urlsPerAttendee[i]
+    const sources = urlsPerAttendee[i]!
       .map(u => textByKey.get(profileKey(u)?.url ?? u))
       .filter((s): s is Source => Boolean(s))
     if (sources.length === 0) {
