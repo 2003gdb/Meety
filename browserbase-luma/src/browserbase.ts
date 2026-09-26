@@ -40,12 +40,9 @@ export async function startSession(
 
 export function embedLiveViewUrl(raw: string): string {
   const parsed = new URL(raw);
-  const wss = parsed.searchParams.get("wss");
-  if (!wss) return raw;
-  const embedded = new URL("https://www.browserbase.com/devtools-fullscreen-compiled/index.html");
-  embedded.searchParams.set("wss", wss);
-  embedded.searchParams.set("debug", "true");
-  return embedded.toString();
+  parsed.searchParams.delete("debug");
+  parsed.searchParams.set("navbar", "false");
+  return parsed.toString();
 }
 
 export async function liveViewUrl(bb: Browserbase, sessionId: string): Promise<string> {
