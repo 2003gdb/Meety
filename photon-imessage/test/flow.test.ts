@@ -37,6 +37,18 @@ test("onboarding runs from handoff to matches, then answers live questions", asy
   assert.match(joined(await flow.handle(PHONE, "what about Tom")), /^probably not/);
 });
 
+test("if the welcome couldn't be sent, the user's first text gets it instead", async () => {
+  const flow = newFlow();
+  await flow.start({ phone: PHONE, name: "Sam Taylor" });
+  flow.welcomeFailed(PHONE);
+
+  const first = joined(await flow.handle(PHONE, "hi"));
+  assert.match(first, /hey Sam, it's Meety/);
+  assert.match(first, /log into Luma/);
+  // From here onboarding carries on as normal.
+  assert.match(joined(await flow.handle(PHONE, "done")), /is this you/);
+});
+
 test("'that's not me' asks for links and re-checks identity", async () => {
   const flow = newFlow();
   await flow.start({ phone: PHONE, name: "Sam Taylor" });

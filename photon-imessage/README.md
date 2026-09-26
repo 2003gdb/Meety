@@ -58,7 +58,7 @@ If `MEETY_INTERNAL_SECRET` is set, send it as the `x-meety-secret` header.
 
 | Endpoint | Caller | Body | Effect |
 |---|---|---|---|
-| `POST /handoff` | landing-page, right after sign-up | `{ phone, name?, email?, linkedinUrl?, xUrl? }` | Registers the user and texts them first. On the Pro plan this only works after the user has texted Meety once ([why](PHOTON_SETUP.md#pro-plan-rules)) |
+| `POST /handoff` | landing-page, right after sign-up | `{ phone, name?, email?, linkedinUrl?, xUrl? }` | Registers the user and tries to text them first. Returns `{ ok, texted, reason? }`. `texted: false` is normal on the Pro plan ([why](PHOTON_SETUP.md#pro-plan-rules)): the welcome then goes out as soon as the user texts Meety |
 | `POST /notify` | whoever schedules the ~24h pre-event trigger | `{ phone, eventId? }` | Texts "you're down for X tomorrow, want me to prep you?" |
 | `GET /health` | anyone | | `{ ok: true }` |
 
@@ -82,7 +82,7 @@ On failure, `/handoff` and `/notify` return Photon's reason in the JSON `error` 
 
 ## Known gaps in v1
 
-- **Meety can't text a new sign-up first on the Pro plan.** Next change: a "Text Meety" button on the landing page, and onboarding that starts when a registered user texts in. See [PHOTON_SETUP.md](PHOTON_SETUP.md#what-this-changes-in-onboarding).
+- **The landing page needs a "Text Meety" button.** On the Pro plan Meety can't text a new sign-up first, so the user has to message first; Meety then replies with the welcome. See [PHOTON_SETUP.md](PHOTON_SETUP.md#what-this-changes-in-onboarding).
 - **Every phone must be allowlisted** under Users in the Photon dashboard (Pro plan).
 - **State is in memory.** Sessions and users are lost on restart; move them to Supabase alongside the landing page.
 - **No voice transcription provider** has been picked yet.

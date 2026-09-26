@@ -32,11 +32,14 @@ These come from testing and Photon's docs. The Business plan (one dedicated numb
 
 ### What this changes in onboarding
 
-The landing page can't promise "we'll text you". Planned change (not built yet):
+The landing page can't promise "we'll text you". How it works now:
 
-1. The landing page registers the user and shows a **Text Meety** button: an `sms:` link to the Photon number with a message already typed.
-2. When a registered user texts for the first time, Meety starts onboarding instead of sending the sign-up link.
-3. `/handoff` keeps trying to text first and succeeds whenever Photon allows it, so this still works on the Business plan.
+1. The landing page calls `POST /handoff`. Meety registers the user and tries to text first.
+2. If Photon refuses, the response is `{ "ok": true, "texted": false, "reason": "..." }`. The user is still registered.
+3. The landing page then shows a **Text Meety** button: an `sms:` link to the Photon number with a message already typed, e.g. `sms:+1XXXXXXXXXX&body=hey Meety`. *(Landing page lane, not built yet.)*
+4. Whatever the user's first text says, Meety replies with the welcome and onboarding carries on from there.
+
+On the Business plan step 1 simply succeeds (`texted: true`), so the same code works on both plans.
 
 ## Troubleshooting
 

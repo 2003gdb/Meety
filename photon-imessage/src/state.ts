@@ -14,6 +14,9 @@ export interface Turn {
 export interface Session {
   phone: string;
   step: Step;
+  /** Whether the welcome has reached the user. On Photon's Pro plan Meety can't
+   * text a new user first, so the welcome may have to wait for their first text. */
+  welcomed: boolean;
   profile?: Profile;
   /** Events currently on offer, in the order the user saw them. */
   eventOptions?: LumaEvent[];
@@ -38,7 +41,7 @@ export class SessionStore {
   getOrCreate(phone: string): Session {
     let s = this.sessions.get(phone);
     if (!s) {
-      s = { phone, step: "connect_luma", history: [] };
+      s = { phone, step: "connect_luma", welcomed: false, history: [] };
       this.sessions.set(phone, s);
     }
     return s;

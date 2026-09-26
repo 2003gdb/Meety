@@ -21,13 +21,25 @@ export class Flow {
     private opts: FlowOptions,
   ) {}
 
-  /** First contact after sign-up (landing page handoff). */
+  /**
+   * Sign-up (landing page handoff): registers the user and returns the welcome
+   * for the caller to send. If that send fails, call welcomeFailed() and the
+   * welcome goes out when the user first texts in.
+   */
   async start(user: MeetyUser): Promise<string[]> {
     await this.services.users.upsert(user);
     const session = this.sessions.reset(user.phone);
-    const out = copy.welcome(user.name, await this.services.luma.connectUrl(user));
-    this.log(session, out);
-    return out;
+    return this.welcome(session, user);
+  }
+
+  welcomeFailed(phone: string) {
+    const session = this.sessions.get(phone);
+    if (session) session.welcomed = false;
+  }
+
+  private async welcome(session: Session, user: MeetyUser) {
+    session.welcomed = true;
+    return this.log(session, copy.welcome(user.name, await this.services.luma.connectUrl(user)));
   }
 
   /** Pre-event nudge (~24h before), fired by whoever watches the calendar. */
@@ -49,6 +61,8 @@ export class Flow {
 
     const session = this.sessions.getOrCreate(phone);
     this.sessions.remember(session, "user", text);
+    // Signed up, but we couldn't text them first: their first text starts onboarding.
+    if (!session.welcomed) return this.welcome(session, user);
     const out = await this.step(session, user, text);
     return this.log(session, out);
   }

@@ -70,7 +70,16 @@ async function main() {
     async handoff(body) {
       const phone = normalizeHandle(body.phone);
       const out = await flow.start({ ...body, phone });
-      await sendAll(await transport.openDm(phone), out);
+      try {
+        await sendAll(await transport.openDm(phone), out);
+        return { texted: true };
+      } catch (err) {
+        // Expected on Photon's Pro plan until the user has texted Meety once.
+        flow.welcomeFailed(phone);
+        const reason = err instanceof Error ? err.message : String(err);
+        console.warn(`[meety] couldn't text ${phone} first (${reason}); welcome will go out when they text in`);
+        return { texted: false, reason };
+      }
     },
     async notify(body) {
       const phone = normalizeHandle(body.phone);

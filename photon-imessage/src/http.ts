@@ -1,5 +1,6 @@
 // Internal HTTP endpoints the other lanes call to make Meety text someone first.
 //   POST /handoff  { phone, name?, email?, linkedinUrl?, xUrl? }  landing page, right after sign-up
+//                  → { ok, texted, reason? }; texted=false means the user must text Meety first
 //   POST /notify   { phone, eventId? }                              pre-event trigger (~24h before)
 //   GET  /health
 
@@ -19,7 +20,7 @@ export type HandoffBody = z.infer<typeof Handoff>;
 export type NotifyBody = z.infer<typeof Notify>;
 
 export interface HttpHandlers {
-  handoff(body: HandoffBody): Promise<void>;
+  handoff(body: HandoffBody): Promise<{ texted: boolean; reason?: string }>;
   notify(body: NotifyBody): Promise<void>;
 }
 
@@ -34,8 +35,7 @@ export function startHttp(port: number, secret: string | undefined, handlers: Ht
       if (req.url === "/handoff") {
         const parsed = Handoff.safeParse(body);
         if (!parsed.success) return send(res, 400, { error: parsed.error.issues });
-        await handlers.handoff(parsed.data);
-        return send(res, 202, { ok: true });
+        return send(res, 202, { ok: true, ...(await handlers.handoff(parsed.data)) });
       }
       if (req.url === "/notify") {
         const parsed = Notify.safeParse(body);
