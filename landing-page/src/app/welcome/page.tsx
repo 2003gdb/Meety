@@ -4,6 +4,7 @@ import { AuthShell } from "@/components/AuthShell";
 import { primaryButtonClass } from "@/components/form/fields";
 import { createClient } from "@/lib/supabase/server";
 import { formatPhone, getPhotonNumber, smsLink } from "@/lib/photon";
+import { registerWithPhoton } from "@/lib/photon-users";
 import type { Profile } from "@/types";
 
 export const metadata: Metadata = { title: "Welcome to Meety" };
@@ -26,7 +27,13 @@ export default async function WelcomePage() {
   if (!profile?.phone) redirect("/onboarding");
 
   const firstName = profile.full_name?.trim().split(/\s+/)[0];
-  const meetyNumber = getPhotonNumber();
+  // Photon only delivers texts from registered phones, each on its own pooled line.
+  const assignedLine = await registerWithPhoton({
+    phone: profile.phone,
+    fullName: profile.full_name,
+    email: user.email ?? null,
+  });
+  const meetyNumber = assignedLine ?? getPhotonNumber();
   if (!meetyNumber) console.error("NEXT_PUBLIC_PHOTON_NUMBER is missing or not E.164");
 
   return (
