@@ -1,0 +1,12 @@
+{
+  "name": "meety-tavily-research",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=23.6" },
+  "scripts": {
+    "test": "node --test test/*.test.ts",
+    "user": "node src/cli.ts user",
+    "confirm": "node src/cli.ts confirm",
+    "attendees": "node src/cli.ts attendees"
+  }
+}
