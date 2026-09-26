@@ -1,0 +1,8 @@
+# Vercel builds landing-page/ (Root Directory), which imports tavily-research/.
+# Keep secrets and the other lanes out of CLI uploads.
+.env*
+!.env.example
+*.key
+photon-imessage/
+browserbase-luma/
+jev-integration/
