@@ -1,11 +1,15 @@
 import Link from "next/link";
+import { LogoMark } from "@/components/brand/Logo";
 import { IMessageDemo } from "./IMessageDemo";
 
 export function Hero() {
   return (
     <main className="mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col px-5 sm:px-8">
       <header className="flex h-16 shrink-0 items-center">
-        <span className="text-[17px] font-semibold tracking-tight">Meety</span>
+        <span className="flex items-center gap-2 text-[17px] font-semibold tracking-tight">
+          <LogoMark className="size-6 text-accent" />
+          Meety
+        </span>
       </header>
 
       <section className="grid flex-1 items-center gap-12 pt-6 pb-12 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-16 lg:pt-0 lg:pb-10">

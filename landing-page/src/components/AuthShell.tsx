@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { LogoMark } from "@/components/brand/Logo";
 
 /** Frame for /signup, /onboarding and /welcome: same header as the hero, narrow centered column. */
 export function AuthShell({
@@ -16,8 +17,9 @@ export function AuthShell({
       <header className="flex h-16 shrink-0 items-center">
         <Link
           href="/"
-          className="rounded-sm text-[17px] font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+          className="flex items-center gap-2 rounded-sm text-[17px] font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
         >
+          <LogoMark className="size-6 text-accent" />
           Meety
         </Link>
       </header>

@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { AnimatePresence, motion, useInView, type Transition } from "motion/react";
+import { LogoMark } from "@/components/brand/Logo";
 import type { ChatSender } from "@/types";
 import { Bubble } from "./Bubble";
 import { Composer } from "./Composer";
@@ -42,8 +43,8 @@ export function IMessageDemo() {
           className="flex h-[540px] flex-col overflow-hidden rounded-[45px] bg-surface font-imessage lg:h-[min(660px,calc(100dvh-11rem))]"
         >
           <header className="flex flex-col items-center gap-1 border-b border-border pt-5 pb-2.5">
-            <span className="grid size-11 place-items-center rounded-full bg-[linear-gradient(#a5abb8,#858994)] text-[19px] font-medium text-white">
-              M
+            <span className="grid size-11 place-items-center rounded-full bg-accent text-accent-fg">
+              <LogoMark className="size-7" />
             </span>
             <span className="text-[11px]">
               Meety <span className="text-muted">›</span>

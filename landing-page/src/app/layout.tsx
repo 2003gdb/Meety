@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: "Meety",
   description:
     "The day before your Luma event, Meety asks what you want out of it and texts you who to meet.",
-  icons: { icon: "/icon.svg" },
+  icons: { icon: "/icon.svg", apple: "/apple-icon.png" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
