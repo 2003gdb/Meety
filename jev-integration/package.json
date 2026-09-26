@@ -1,0 +1,12 @@
+{
+  "name": "meety-jev-integration",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=23.6" },
+  "scripts": {
+    "test": "node --test test/*.test.ts",
+    "match": "node src/cli.ts match",
+    "ask": "node src/cli.ts ask",
+    "intent": "node src/cli.ts intent"
+  }
+}
