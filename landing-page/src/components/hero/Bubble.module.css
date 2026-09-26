@@ -1,0 +1,139 @@
+/* iMessage bubble. Tail = two pseudo-elements: a colored curve, then a
+   screen-colored curve that carves it. Screen color is --color-surface. */
+.bubble {
+  position: relative;
+  max-width: 78%;
+  padding: 7px 12px;
+  border-radius: 18px;
+  font-size: 15px;
+  line-height: 20px;
+  overflow-wrap: break-word;
+}
+
+.in {
+  background: var(--color-bubble-in);
+  color: var(--color-bubble-in-fg);
+}
+
+.out {
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+}
+
+.tail::before,
+.tail::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  height: 20px;
+}
+
+.in.tail::before {
+  left: -7px;
+  width: 20px;
+  background: var(--color-bubble-in);
+  border-bottom-right-radius: 16px 14px;
+}
+
+.in.tail::after {
+  left: -26px;
+  width: 26px;
+  background: var(--color-surface);
+  border-bottom-right-radius: 10px;
+}
+
+.out.tail::before {
+  right: -7px;
+  width: 20px;
+  background: var(--color-accent);
+  border-bottom-left-radius: 16px 14px;
+}
+
+.out.tail::after {
+  right: -26px;
+  width: 26px;
+  background: var(--color-surface);
+  border-bottom-left-radius: 10px;
+}
+
+/* Typing indicator: the bubble trails two small circles, like iOS. */
+.typing {
+  position: relative;
+  display: flex;
+  gap: 4px;
+  padding: 13px 14px;
+  border-radius: 18px;
+  background: var(--color-bubble-in);
+}
+
+.typing::before,
+.typing::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: var(--color-bubble-in);
+}
+
+.typing::before {
+  left: -2px;
+  bottom: -2px;
+  width: 11px;
+  height: 11px;
+}
+
+.typing::after {
+  left: -7px;
+  bottom: -7px;
+  width: 5px;
+  height: 5px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-muted);
+  animation: dot 1.2s ease-in-out infinite;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 18px;
+  margin-left: 1px;
+  vertical-align: -3px;
+  background: var(--color-accent);
+  animation: caret 1s steps(1) infinite;
+}
+
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot,
+  .caret {
+    animation: none;
+  }
+}

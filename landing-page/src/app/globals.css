@@ -1,0 +1,71 @@
+/*
+  Meety design tokens. Every page reuses these; don't hardcode colors.
+
+  Colors (utility: bg-bg, text-fg, border-border... or text-(--color-fg)).
+  Light and dark values swap automatically via prefers-color-scheme.
+    --color-bg          page background
+    --color-surface     raised surfaces: inputs, cards, the phone screen
+    --color-fg          primary text
+    --color-muted       secondary text (AA on bg and surface)
+    --color-border      hairlines and input borders
+    --color-accent      iMessage blue: primary buttons, outgoing bubbles, focus rings
+    --color-accent-fg   text on accent (white, 4.7:1)
+    --color-danger      error text and error borders
+    --color-bubble-in   incoming (gray) message bubble; text uses --color-bubble-in-fg
+
+  Fonts: font-sans (Schibsted Grotesk, all page UI), font-imessage (system stack,
+  only inside the phone mock so it reads like iOS).
+
+  Shape: buttons and inputs are full pills (rounded-full), containers rounded-2xl.
+*/
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #f6f6f7;
+  --color-surface: #ffffff;
+  --color-fg: #141416;
+  --color-muted: #63636b;
+  --color-border: #e3e3e6;
+  --color-accent: #0a6fe6;
+  --color-accent-fg: #ffffff;
+  --color-danger: #c4321f;
+  --color-bubble-in: #e9e9eb;
+  --color-bubble-in-fg: #141416;
+}
+
+@theme inline {
+  --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, sans-serif;
+  --font-imessage:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0c0c0e;
+    --color-surface: #161618;
+    --color-fg: #f2f2f3;
+    --color-muted: #9c9ca4;
+    --color-border: #2a2a2f;
+    --color-danger: #ff7a6b;
+    --color-bubble-in: #26262a;
+    --color-bubble-in-fg: #f2f2f3;
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: light dark;
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-accent-fg);
+  }
+}
